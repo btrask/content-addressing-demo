@@ -1,0 +1,48 @@
+#!/usr/bin/python3
+# Copyright 2015 Ben Trask
+# MIT licensed (see LICENSE for details)
+
+import argparse
+import base64
+import hashlib
+import os
+from os import path
+
+parser = argparse.ArgumentParser(description="Content addressable storage importer")
+parser.add_argument(dest="file", type=argparse.FileType("rb"))
+args = parser.parse_args()
+
+repo = path.join(path.expanduser("~"), ".local", "cas-demo")
+data = path.join(repo, "data")
+tmp = path.join(repo, "tmp")
+
+algos = ["sha256", "sha1"]
+
+def submit(file):
+	os.makedirs(tmp, 0o700, exist_ok=True)
+	tmppath = path.join(tmp, str(base64.urlsafe_b64encode(os.urandom(12)), "ascii"))
+	tmpfile = os.fdopen(os.open(tmppath, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o400), "wb")
+	hashers = [hashlib.new(algo) for algo in algos]
+	while 1:
+		buf = args.file.read()
+		if not buf: break
+		for hasher in hashers: hasher.update(buf)
+		tmpfile.write(buf)
+
+	tmpfile.flush()
+	os.fsync(tmpfile.fileno())
+	tmpfile.close()
+
+	for hasher in hashers: add(tmppath, hasher.name, hasher.hexdigest())
+	os.unlink(tmppath)
+
+def add(tmppath, algo, hash):
+	print("hash://"+algo+"/"+hash)
+	dst = path.join(data, algo, hash[0:2], hash);
+	os.makedirs(path.dirname(dst), 0o700, exist_ok=True) # TODO: fsync
+	try: os.link(tmppath, dst)
+	except FileExistsError: pass
+	# TODO: fsync the dir
+
+submit(args.file)
+
