@@ -3,6 +3,8 @@ Content Addressing Demo
 
 A simple content addressing system in under 100 lines of Python.
 
+This is my first time using Python, so some parts may seem a bit weird. Feedback welcome.
+
 FAQ
 ---
 
