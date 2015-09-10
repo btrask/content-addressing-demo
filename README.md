@@ -5,6 +5,22 @@ A simple content addressing system in under 100 lines of Python.
 
 This is my first time using Python, so some parts may seem a bit weird. Feedback welcome.
 
+Usage
+-----
+
+`hash-import /path/to/file`  
+Hashes the file  
+Creates a read-only copy  
+Prints content address in various formats
+
+`hash-lookup hash://sha256/...`  
+Writes the file content to standard output
+
+`hash-lookup --path hash://sha256/...`  
+Prints the path to a read-only copy of the file
+
+Files are stored in `~/.local/cas-demo`
+
 FAQ
 ---
 
